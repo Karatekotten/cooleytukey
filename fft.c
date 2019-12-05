@@ -18,11 +18,9 @@ float (*cmplx_paste(float x[][CMPLX], float z[][CMPLX], int m, int n, int i))[CM
 typedef struct
 {
 	float (*x)[CMPLX];
-
 	int m, n, t;
 } transform_args;
 
-transform_args *transform_arguments_set(transform_args *args, float x[][CMPLX], int m, int n, int t);
 void *transform(void *argp);
 float (*transform_fourier(float x[][CMPLX], int m, int n, int h, int i))[CMPLX];
 float (*transform_separate(float x[][CMPLX], int m, int n, int h))[CMPLX];
@@ -40,19 +38,19 @@ int main()
 
 	transform_generate(x, N, 3, 0);
 
+	int threads = 8;
+
 	clock_t t0, t;
 
 	t0 = clock();
 
-	transform_args args;
-
-	transform_arguments_set(&args, x, 0, N, 3);
+	transform_args args = {x, 0, N, floor(log2(threads))};
 
 	transform(&args);
 
 	t = clock();
 
-	printf("\nt: %f s\n", (float)(t - t0)/CLOCKS_PER_SEC);
+	printf("\ntime: %f s\n", (float)(t-t0)/CLOCKS_PER_SEC);
 	
 	transform_normalize(x, y, N/2, 0);
 
@@ -87,16 +85,6 @@ float (*cmplx_paste(float x[][CMPLX], float z[][CMPLX], int m, int n, int i))[CM
 	return x;
 }
 
-transform_args *transform_arguments_set(transform_args *args, float x[][CMPLX], int m, int n, int t)
-{
-	args->x = x;
-	args->m = m;
-	args->n = n;
-	args->t = t;
-
-	return args;
-}
-
 void *transform(void *argp)
 {
 	transform_args *args = argp;
@@ -107,10 +95,8 @@ void *transform(void *argp)
 	{
 		transform_separate(args->x, args->m, args->n, h);
 
-		transform_args argsEven, argsOdd;
-
-		transform_arguments_set(&argsEven, args->x, args->m, args->m+h, args->t-1);
-		transform_arguments_set(&argsOdd, args->x, args->m+h, args->n, args->t-1);
+		transform_args argsEven = {args->x, args->m, args->m+h, args->t-1};
+		transform_args argsOdd = {args->x, args->m+h, args->n, args->t-1};
 
 		if (args->t > 0)
 		{
