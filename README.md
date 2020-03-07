@@ -1,7 +1,7 @@
 # cooleytukey fourier transform
 
 The number of threads created is set in the transform function as the number of times the work is divided.
-results for ryzen 2700 processor with 16384 (2^14) data points were roughly:
+results for 2^14 data points were roughly:
 
 | t | threads  | time  |
 | :-----: | :-: | :-: |
